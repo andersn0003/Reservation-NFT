@@ -1,0 +1,33 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Full Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Foundry Tests
+        run: make test
+        working-directory: ./backend
+
+      - name: Forge Snapshot
+        run: make snapshot
+        working-directory: ./backend
+
+      - name: FE Fleek Deployment
+        id: deploy
+        uses: fleekhq/action-deploy@v1
+        with:
+          apiKey: ${{ secrets.FLEEK_API_KEY }}
+          workDir: frontend
+      - name: Get the output url
+        run: echo "Deploy url is ${{ steps.deploy.outputs.deployUrl }}"
